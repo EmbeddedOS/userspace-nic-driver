@@ -1,9 +1,8 @@
 #include <base.h>
 
-#define E1000E_DRIVER_NAME "lava"
+#define E1000E_DRIVER_NAME "e1000e-userspace-driver"
 #define INTEL_CORP_VENDOR_ID 0x8086
 #define INTEL_82574L_GIGABIT_DEVICE_ID 0x10d3
-
 
 struct e1000e_driver
 {

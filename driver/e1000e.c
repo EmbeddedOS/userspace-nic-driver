@@ -27,9 +27,17 @@ struct nic_driver *e1000e_init()
     log_info("Loading e1000e driver!");
 
     struct e1000e_driver *self = malloc_type(struct e1000e_driver);
+
+    self->name = E1000E_DRIVER_NAME;
+
     self->base.send = &e1000e_send;
     self->base.recv = &e1000e_recv;
-    self->name = E1000E_DRIVER_NAME;
+
+    /* 1. Unbind driver. */
+    /* 2. Enable DMA. */
+    /* 3. Map the DMA into process memory. */
+
+    /* Now we have device memory on user space. */
 
     return &self->base;
 }
