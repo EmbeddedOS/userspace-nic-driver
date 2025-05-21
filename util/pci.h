@@ -4,7 +4,6 @@
 #define PCI_ATTRIBUTE_CONFIG "config"
 #define PCI_ATTRIBUTE_UNBIND "driver/unbind"
 
-
 /* PCI Common Configuration Space Header -------------------------------------*/
 #define PCI_CONFIG_VENDOR_ID_OFFSET 0x00
 #define PCI_CONFIG_DEVICE_ID_OFFSET 0x02
@@ -20,7 +19,6 @@
 #define PCI_CONFIG_CAPABILITIES_POINTER_OFFSET 0x34
 #define PCI_CONFIG_INTERRUPT_LINE_OFFSET 0x3C
 #define PCI_CONFIG_INTERRUPT_PIN_OFFSET 0x3D
-
 
 #define PCI_CONFIG_COMMAND_BUS_MASTER_ENABLE_BIT 0x02
 
@@ -50,6 +48,8 @@ int pci_enable_bus_mastering(const char *pci_addr);
 #define build_pci_path(attribute, pci_addr, path, len) ({                   \
     snprintf(path, len, "/sys/bus/pci/devices/%s/%s", pci_addr, attribute); \
 })
+
+int pci_mmap(const char *pci_addr, const char *resource, uint8_t **ptr);
 
 /* PCI sysfs file operations -------------------------------------------------*/
 int pci_open(const char *pci_addr, const char *attribute, int flags);

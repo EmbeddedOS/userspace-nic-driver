@@ -25,7 +25,6 @@ int pci_get_info(const char *pci_addr, struct pci_dev_info *info)
     res = pci_read16(fd, PCI_CONFIG_CLASS_CODE_OFFSET, &info->class_id);
     expr_check_err(res, read_failed, "pci_read class ID failed");
 
-
     log_info("Device: %s, vendor id: %04X, device id: %04X, class id: %04X",
              pci_addr, info->vendor_id, info->device_id, info->class_id);
 
@@ -78,6 +77,36 @@ int pci_enable_bus_mastering(const char *pci_addr)
 
 write_failed:
 read_failed:
+    pci_close(fd);
+
+exit:
+    return res;
+}
+
+int pci_mmap(const char *pci_addr, const char *resource, uint8_t **ptr)
+{
+    int res = 0;
+    int fd = 0;
+    int64_t resource_len = 0;
+
+    res = pci_open(pci_addr, resource, O_RDWR);
+    expr_check_err(res, exit, "pci_open %s/%s failed", pci_addr, resource);
+    fd = res;
+
+    resource_len = get_filesize(fd);
+    expr_check_err(resource_len, get_filesize_failed,
+                   "Get file size %s/%s failed", pci_addr, resource);
+
+    *ptr = (uint8_t *)mmap(NULL, stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    if (*ptr == MAP_FAILED)
+    {
+        res = -errno;
+        log_error("Failed to map resource: %d", res);
+        goto mmap_failed;
+    }
+
+mmap_failed:
+get_filesize_failed:
     pci_close(fd);
 
 exit:
