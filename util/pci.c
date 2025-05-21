@@ -1,8 +1,10 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <log.h>
+#include <utility.h>
 #include <pci.h>
 
 int pci_get_info(const char *pci_addr, struct pci_dev_info *info)
@@ -10,17 +12,17 @@ int pci_get_info(const char *pci_addr, struct pci_dev_info *info)
     int res = 0;
     int fd = 0;
 
-    res = pci_open(pci_addr, "config", O_RDONLY);
+    res = pci_open(pci_addr, PCI_ATTRIBUTE_CONFIG, O_RDONLY);
     expr_check_err(res, exit, "pci_open %s failed", pci_addr);
     fd = res;
 
-    res = pci_read16(fd, 0, &info->vendor_id);
+    res = pci_read16(fd, PCI_CONFIG_VENDOR_ID_OFFSET, &info->vendor_id);
     expr_check_err(res, read_failed, "pci_read vendor ID failed");
 
-    res = pci_read16(fd, 2, &info->device_id);
+    res = pci_read16(fd, PCI_CONFIG_DEVICE_ID_OFFSET, &info->device_id);
     expr_check_err(res, read_failed, "pci_read device ID failed");
 
-    res = pci_read16(fd, 10, &info->class_id);
+    res = pci_read16(fd, PCI_CONFIG_CLASS_CODE_OFFSET, &info->class_id);
     expr_check_err(res, read_failed, "pci_read class ID failed");
 
 
@@ -29,6 +31,55 @@ int pci_get_info(const char *pci_addr, struct pci_dev_info *info)
 
 read_failed:
     pci_close(fd);
+exit:
+    return res;
+}
+
+int pci_unbind(const char *pci_addr)
+{
+    int res = 0;
+    int fd = 0;
+
+    res = pci_open(pci_addr, PCI_ATTRIBUTE_UNBIND, O_WRONLY);
+    expr_check_err(res, exit, "pci_open %s failed", pci_addr);
+    fd = res;
+
+    res = pci_write(fd, 0, pci_addr, strlen(pci_addr));
+    expr_check_err(res, write_failed, "pci_write %s failed", pci_addr);
+
+write_failed:
+    pci_close(fd);
+
+exit:
+    return res;
+}
+
+/**
+ * @brief   - Enable bus mastering, allows PCI adapter to directly access system
+ *            memory without CPU's intervention. We do that by set bit 2 of the
+ *            command register in the PCI configuration space.
+ */
+int pci_enable_bus_mastering(const char *pci_addr)
+{
+    int res = 0;
+    int fd = 0;
+    uint16_t pci_config_command = 0;
+    res = pci_open(pci_addr, PCI_ATTRIBUTE_CONFIG, O_RDWR);
+    expr_check_err(res, exit, "pci_open %s failed", pci_addr);
+    fd = res;
+
+    res = pci_read16(fd, PCI_CONFIG_COMMAND_OFFSET, &pci_config_command);
+    expr_check_err(res, read_failed, "pci_read %s failed", pci_addr);
+
+    set_bit(pci_config_command, PCI_CONFIG_COMMAND_BUS_MASTER_ENABLE_BIT);
+
+    res = pci_write16(fd, PCI_CONFIG_COMMAND_OFFSET, &pci_config_command);
+    expr_check_err(res, write_failed, "pci_write %s failed", pci_addr);
+
+write_failed:
+read_failed:
+    pci_close(fd);
+
 exit:
     return res;
 }

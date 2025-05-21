@@ -22,8 +22,9 @@ static uint32_t e1000e_recv(struct nic_driver *drv, struct packet **buffers, uin
     return 0;
 }
 
-struct nic_driver *e1000e_init()
+struct nic_driver *e1000e_init(const char *pci_addr)
 {
+    int res = 0;
     log_info("Loading e1000e driver!");
 
     struct e1000e_driver *self = malloc_type(struct e1000e_driver);
@@ -34,7 +35,11 @@ struct nic_driver *e1000e_init()
     self->base.recv = &e1000e_recv;
 
     /* 1. Unbind driver. */
+    pci_unbind(pci_addr);
+
     /* 2. Enable DMA. */
+    pci_enable_bus_mastering(pci_addr);
+
     /* 3. Map the DMA into process memory. */
 
     /* Now we have device memory on user space. */

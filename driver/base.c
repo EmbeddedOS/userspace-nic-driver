@@ -15,7 +15,7 @@ struct nic_driver *nic_driver_init(const char *pci_addr)
     if (pci_info.device_id == INTEL_82574L_GIGABIT_DEVICE_ID && 
         pci_info.vendor_id == INTEL_CORP_VENDOR_ID)
     {
-        return e1000e_init();
+        return e1000e_init(pci_addr);
     }
     else
     {

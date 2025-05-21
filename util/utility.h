@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stddef.h>
 
+#define set_bit(var, pos) var |= (1 << pos)
+
 #define malloc_type(type)                         \
     ({                                            \
         type *tmp = (type *)malloc(sizeof(type)); \

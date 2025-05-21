@@ -12,4 +12,4 @@ struct e1000e_driver
 
 #define e1000e_container_of(ptr) CONTAINER_OF(ptr, struct e1000e_driver, base)
 
-struct nic_driver* e1000e_init();
+struct nic_driver* e1000e_init(const char *pci_addr);
