@@ -5,6 +5,12 @@
 
 #include <e1000e.h>
 
+static int e1000e_reset(struct e1000e_driver *self);
+
+static int e1000e_disable_interrupts(struct e1000e_driver *self);
+
+static int e1000e_enable_interrupts(struct e1000e_driver *self);
+
 static uint32_t e1000e_send(struct nic_driver *drv, const struct packet **buffers, uint32_t len);
 
 static uint32_t e1000e_recv(struct nic_driver *drv, struct packet **buffers, uint32_t len);
@@ -22,6 +28,17 @@ static uint32_t e1000e_recv(struct nic_driver *drv, struct packet **buffers, uin
     return 0;
 }
 
+static int e1000e_reset(struct e1000e_driver *self)
+{
+    int res = 0;
+
+    res = e1000e_disable_interrupts(self);
+
+exit:
+    return res;
+}
+
+
 struct nic_driver *e1000e_init(const char *pci_addr)
 {
     int res = 0;
@@ -35,15 +52,15 @@ struct nic_driver *e1000e_init(const char *pci_addr)
     self->base.recv = &e1000e_recv;
 
     /* 1. Unbind driver. */
-    pci_unbind(pci_addr);
+    res= pci_unbind(pci_addr);
 
     /* 2. Enable DMA. */
-    pci_enable_bus_mastering(pci_addr);
+    res = pci_enable_bus_mastering(pci_addr);
 
     /* 3. Map the DMA into process memory. */
-    pci_mmap(pci_addr, "resource0", &self->bar0);
+    res = pci_mmap(pci_addr, PCI_ATTRIBUTE_RESOURCE0, &self->bar0);
 
-    /* Now we have device memory on user space. */
+    res = e1000e_reset(self);
 
     return &self->base;
 }

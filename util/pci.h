@@ -3,6 +3,7 @@
 /* PCI Attributes ------------------------------------------------------------*/
 #define PCI_ATTRIBUTE_CONFIG "config"
 #define PCI_ATTRIBUTE_UNBIND "driver/unbind"
+#define PCI_ATTRIBUTE_RESOURCE0 "resource0"
 
 /* PCI Common Configuration Space Header -------------------------------------*/
 #define PCI_CONFIG_VENDOR_ID_OFFSET 0x00
