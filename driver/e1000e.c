@@ -41,6 +41,7 @@ struct nic_driver *e1000e_init(const char *pci_addr)
     pci_enable_bus_mastering(pci_addr);
 
     /* 3. Map the DMA into process memory. */
+    pci_mmap(pci_addr, "resource0", &self->bar0);
 
     /* Now we have device memory on user space. */
 

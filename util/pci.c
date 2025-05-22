@@ -2,7 +2,7 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <string.h>
-
+#include <sys/mman.h>
 #include <log.h>
 #include <utility.h>
 #include <pci.h>
@@ -97,7 +97,8 @@ int pci_mmap(const char *pci_addr, const char *resource, uint8_t **ptr)
     expr_check_err(resource_len, get_filesize_failed,
                    "Get file size %s/%s failed", pci_addr, resource);
 
-    *ptr = (uint8_t *)mmap(NULL, stat.st_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    *ptr = (uint8_t *)mmap(NULL, resource_len, PROT_READ | PROT_WRITE,
+                           MAP_SHARED, fd, 0);
     if (*ptr == MAP_FAILED)
     {
         res = -errno;

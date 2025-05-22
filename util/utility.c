@@ -1,5 +1,7 @@
-
 #include <sys/stat.h>
+#include <errno.h>
+#include <stdint.h>
+
 #include <utility.h>
 
 int64_t get_filesize(int fd)

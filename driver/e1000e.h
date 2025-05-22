@@ -1,13 +1,26 @@
 #include <base.h>
 
 #define E1000E_DRIVER_NAME "e1000e-userspace-driver"
+
+/* Intel 82574 GbE Controller Family datasheet -------------------------------*/
+/**
+ * @brief - For more detail visit: Intel 82574 GbE Controller Family datasheet.
+ */
 #define INTEL_CORP_VENDOR_ID 0x8086
 #define INTEL_82574L_GIGABIT_DEVICE_ID 0x10d3
+
+#define BAR0_CTRL0_OFFSET 0x0000
+#define BAR0_CTRL1_OFFSET 0x0000
+#define BAR0_STATUS_OFFSET 0x0008
+
+
+
 
 struct e1000e_driver
 {
     struct nic_driver base;
     const char *name;
+    uint8_t *bar0;
 };
 
 #define e1000e_container_of(ptr) CONTAINER_OF(ptr, struct e1000e_driver, base)
