@@ -13,6 +13,16 @@ static inline uint32_t get_reg(const uint8_t *base, uint32_t offset)
     return *((volatile uint32_t *)(base + offset));
 }
 
+static inline void set_reg_mask(uint8_t *base, int offset, uint32_t mask)
+{
+    set_reg(base, offset, get_reg(base, offset) | mask);
+}
+
+static inline void clr_reg_mask(uint8_t *base, int offset, uint32_t mask)
+{
+    set_reg(base, offset, get_reg(base, offset) & ~mask);
+}
+
 static inline void set_reg_bit(uint8_t *base, int offset, uint8_t pos)
 {
     set_reg(base, offset, get_reg(base, offset) | (1 << pos));

@@ -11,21 +11,32 @@
 #define INTEL_CORP_VENDOR_ID 0x8086
 #define INTEL_82574L_GIGABIT_DEVICE_ID 0x10d3
 
-/* Intel 82574 GbE Controller Family datasheet -------------------------------*/
-#define INTEL_82574_BAR0_CTRL0_OFFSET 0x0000
-#define INTEL_82574_BAR0_CTRL1_OFFSET 0x0004
-#define INTEL_82574_BAR0_STATUS_OFFSET 0x0008
+/* Intel 82574 register offsets ----------------------------------------------*/
+#define INTEL_82574_BAR0_CTRL0_OFFSET 0x00000
+#define INTEL_82574_BAR0_CTRL1_OFFSET 0x00004
+#define INTEL_82574_BAR0_STATUS_OFFSET 0x00008
+
+/* Interrupts */
+#define INTEL_82574_IMS_OFFSET 0x000D0 /* Interrupt Mask Set/Read. */
+#define INTEL_82574_IMC_OFFSET 0x000D8 /* Interrupt Mask Clear. */
+
+#define INTEL_82574_RCTL_OFFSET 0x00100 /* Receive Control. */
+
+/* Intel 82574 register bits -------------------------------------------------*/
+/* Interrupt Mask Set/Read bits. */
+#define INTEL_82574_IMS_LCS_BIT 0x02 /* Link status change. */
+
+/* Interrupt Mask Clear bits. */
+#define INTEL_82574_IMC_LCS_BIT 0x02 /* Link status change. */
 
 
 /* Public types --------------------------------------------------------------*/
 struct e1000e_rx_queue
 {
-    
 };
 
 struct e1000e_tx_queue
 {
-    
 };
 
 struct e1000e_driver
@@ -39,4 +50,4 @@ struct e1000e_driver
 
 #define e1000e_container_of(ptr) CONTAINER_OF(ptr, struct e1000e_driver, base)
 
-struct nic_driver* e1000e_init(const char *pci_addr);
+struct nic_driver *e1000e_init(const char *pci_addr);
