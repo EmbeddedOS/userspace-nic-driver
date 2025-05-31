@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
+#include <stdint.h>
 
 #define set_bit(var, pos) var |= (1 << pos)
 
@@ -20,3 +21,7 @@
     (type *)( (char *)__mptr - offsetof(type,member) ); })
 
 int64_t get_filesize(int fd);
+
+uint8_t *virt_to_phy(uint8_t *virt);
+
+char *generate_random_string(char *buf, int len);
