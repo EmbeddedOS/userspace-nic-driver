@@ -30,6 +30,9 @@
 #define INTEL_82574_IMC_LCS_BIT 0x02 /* Link status change. */
 
 #define INTEL_82574_CTRL0_RST_BIT 0x1A
+#define INTEL_82574_CTRL0_PHY_RST_BIT 0x1F
+
 /* Intel 82574 register masks ------------------------------------------------*/
 
 #define INTEL_82574_CTRL0_RST_MASK (1 << INTEL_82574_CTRL0_RST_BIT)
+#define INTEL_82574_CTRL0_PHY_RST_MASK (1 << INTEL_82574_CTRL0_PHY_RST_BIT)

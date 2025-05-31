@@ -12,6 +12,8 @@
 /* Private function prototypes -----------------------------------------------*/
 static int e1000e_sw_reset(struct e1000e_driver *self);
 
+static int e1000e_phy_init(struct e1000e_driver *self);
+
 static int e1000e_disable_interrupts(struct e1000e_driver *self);
 
 static int e1000e_enable_interrupts(struct e1000e_driver *self);
@@ -41,6 +43,21 @@ static uint32_t e1000e_recv(struct nic_driver *drv,
     return 0;
 }
 
+/**
+ * @brief   - Perform software reset the NIC.
+ * @brief   - The steps to reset and init the device would be:
+ *              1. Disable Interrupts.
+ *              2. Issue Global Reset and perform General Configuration.
+ *              3. Setup the PHY and the link.
+ *              4. Initialize all statistical counters.
+ *              5. Initialize Receive.
+ *              6. Initialize Transmit.
+ *              7. Enable Interrupts.
+ * 
+ * @ref     - Intel® 82574 GbE Controller Family Datasheet.
+ *              Section 4.0 Initialization.
+ * @ref     - kernel source: drivers/net/ethernet/intel/e1000/e1000_hw.c
+ */
 static int e1000e_sw_reset(struct e1000e_driver *self)
 {
     int res = 0;
@@ -49,8 +66,19 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     res = e1000e_disable_interrupts(self);
 
     /* 2. Issue global reset and general configuration. */
-    log_info("Software resetting ... ");
+    log_info("Reseting nic ...");
 
+    /**
+     * Must reset the PHY before reset the MAC.
+     */
+    set_reg_mask(self->bar0, INTEL_82574_CTRL0_OFFSET,
+                 INTEL_82574_CTRL0_PHY_RST_MASK);
+
+    /**
+     * Software can reset the 82574 by writing the CTRL.RST bit. This bit is
+     * self-clearing. This will reset the chip's transmit, receive, DMA and link
+     * units. Will not effect the current PCI configuration.
+     */
     set_reg_mask(self->bar0, INTEL_82574_CTRL0_OFFSET,
                  INTEL_82574_CTRL0_RST_MASK);
     e1000_write_flush(self->bar0);
@@ -63,12 +91,11 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     res = e1000e_disable_interrupts(self);
 
     /* 4. Setup the PHY and link. */
+    res = e1000e_phy_init(self);
 
     /* 5. Initialize statistic counters. */
 
     /* 6. Initialize receive. */
-    struct mempool mempool = {0};
-    allocate_mempool(20, 512, &mempool);
 
     /* 7. Initialize transmit. */
 
@@ -77,6 +104,11 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
 
 exit:
     return res;
+}
+
+static int e1000e_phy_init(struct e1000e_driver *self)
+{
+
 }
 
 static int e1000e_disable_interrupts(struct e1000e_driver *self)
