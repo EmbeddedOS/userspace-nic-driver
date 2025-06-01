@@ -14,6 +14,12 @@ static int e1000e_sw_reset(struct e1000e_driver *self);
 
 static int e1000e_phy_init(struct e1000e_driver *self);
 
+static int e1000e_init_stat_counters(struct e1000e_driver *self);
+
+static int e1000e_init_rx(struct e1000e_driver *self);
+
+static int e1000e_init_tx(struct e1000e_driver *self);
+
 static int e1000e_disable_interrupts(struct e1000e_driver *self);
 
 static int e1000e_enable_interrupts(struct e1000e_driver *self);
@@ -53,7 +59,7 @@ static uint32_t e1000e_recv(struct nic_driver *drv,
  *              5. Initialize Receive.
  *              6. Initialize Transmit.
  *              7. Enable Interrupts.
- * 
+ *
  * @ref     - Intel® 82574 GbE Controller Family Datasheet.
  *              Section 4.0 Initialization.
  * @ref     - kernel source: drivers/net/ethernet/intel/e1000/e1000_hw.c
@@ -94,10 +100,13 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     res = e1000e_phy_init(self);
 
     /* 5. Initialize statistic counters. */
+    res = e1000e_init_stat_counters(self);
 
     /* 6. Initialize receive. */
+    res = e1000e_init_rx(self);
 
     /* 7. Initialize transmit. */
+    res = e1000e_init_tx(self);
 
     /* 5. Enable interrupt. */
     res = e1000e_enable_interrupts(self);
@@ -106,9 +115,29 @@ exit:
     return res;
 }
 
+/**
+ * @brief   - 
+ *          - The device driver uses the MDIC register to initialize the PHY and
+ *            setup the link.
+ */
 static int e1000e_phy_init(struct e1000e_driver *self)
 {
+    return 0;
+}
 
+static int e1000e_init_stat_counters(struct e1000e_driver *self)
+{
+    return 0;
+}
+
+static int e1000e_init_rx(struct e1000e_driver *self)
+{
+    return 0;
+}
+
+static int e1000e_init_tx(struct e1000e_driver *self)
+{
+    return 0;
 }
 
 static int e1000e_disable_interrupts(struct e1000e_driver *self)
