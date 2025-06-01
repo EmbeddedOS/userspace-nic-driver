@@ -3,6 +3,7 @@
 #include <io.h>
 #include <pci.h>
 #include <e1000e.h>
+#include <mempool.h>
 
 /* Private function prototypes -----------------------------------------------*/
 static int e1000e_sw_reset(struct e1000e_driver *self);
@@ -50,6 +51,7 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     /* 5. Initialize statistic counters. */
 
     /* 6. Initialize receive. */
+    mempool_create(10000);
 
     /* 7. Initialize transmit. */
 
