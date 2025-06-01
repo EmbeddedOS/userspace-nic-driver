@@ -22,6 +22,4 @@
 
 int64_t get_filesize(int fd);
 
-uint8_t *virt_to_phy(uint8_t *virt);
-
 char *generate_random_string(char *buf, int len);

@@ -1,5 +1,5 @@
 #pragma once
 
-struct packet
+struct skt_buf
 {
 };

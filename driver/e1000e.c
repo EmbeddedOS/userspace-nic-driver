@@ -13,14 +13,14 @@ static int e1000e_disable_interrupts(struct e1000e_driver *self);
 static int e1000e_enable_interrupts(struct e1000e_driver *self);
 
 static uint32_t e1000e_send(struct nic_driver *drv,
-                            const struct packet **buffers, uint32_t len);
+                            const struct skt_buf **buffers, uint32_t len);
 
 static uint32_t e1000e_recv(struct nic_driver *drv,
-                            struct packet **buffers, uint32_t len);
+                            struct skt_buf **buffers, uint32_t len);
 
 /* Private function definitions ----------------------------------------------*/
 static uint32_t e1000e_send(struct nic_driver *drv,
-                            const struct packet **buffers, uint32_t len)
+                            const struct skt_buf **buffers, uint32_t len)
 {
     struct e1000e_driver *self = e1000e_container_of(drv);
     log_info("%s sending...", self->name);
@@ -29,7 +29,7 @@ static uint32_t e1000e_send(struct nic_driver *drv,
 }
 
 static uint32_t e1000e_recv(struct nic_driver *drv,
-                            struct packet **buffers, uint32_t len)
+                            struct skt_buf **buffers, uint32_t len)
 {
     return 0;
 }
@@ -51,7 +51,8 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     /* 5. Initialize statistic counters. */
 
     /* 6. Initialize receive. */
-    mempool_create(10000);
+    struct mempool mempool = {0};
+    allocate_mempool(20, 512, &mempool);
 
     /* 7. Initialize transmit. */
 

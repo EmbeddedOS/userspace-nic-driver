@@ -15,11 +15,6 @@ int64_t get_filesize(int fd)
     return file.st_size;
 }
 
-uint8_t *virt_to_phy(uint8_t *virt)
-{
-    return NULL;
-}
-
 char *generate_random_string(char *buf, int len)
 {
     static char charset[] = "0123456789"

@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <unistd.h>
 
 /**
  * @brief   1. To use huge pages, we have to mount a pseudo filesystem of type
@@ -30,6 +31,7 @@
 #define HUGE_PAGE_MOUNT_POINT "/mnt/huge"
 #endif
 
+/* Public types --------------------------------------------------------------*/
 struct mem
 {
     uint8_t *virt;
@@ -46,6 +48,16 @@ struct mempool
     uint32_t current_idx;
     uint32_t *entries;
 };
+
+/* Public function prototypes ------------------------------------------------*/
+uintptr_t virt_to_phy(uint8_t *virt);
+
+int lock_mem_in_ram(uint8_t *virt, size_t size);
+
+static inline long get_system_page_size()
+{
+    return sysconf(_SC_PAGESIZE);
+}
 
 int allocate_huge_page(uint32_t length, struct mem *mem);
 
