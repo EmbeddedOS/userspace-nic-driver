@@ -43,10 +43,6 @@ struct mempool
     uint8_t *addr;
     uint32_t entry_size;
     uint32_t entry_num;
-
-    /* A simple stack to manage entries. Entries will be allocated on heap. */
-    uint32_t current_idx;
-    uint32_t *entries;
 };
 
 /* Public function prototypes ------------------------------------------------*/

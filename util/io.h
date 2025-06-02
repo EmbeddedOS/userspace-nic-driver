@@ -40,7 +40,7 @@ static inline void wait_bit(const uint8_t *base, int offset, uint8_t pos,
     do
     {
         reg = get_reg(base, offset);
-    } while (get_bit(reg, pos) == val);
+    } while (get_bit(reg, pos) != val);
 }
 
 #define wait_bit_set(base, offset, pos) wait_bit(base, offset, pos, 1)

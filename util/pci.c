@@ -106,6 +106,8 @@ int pci_mmap(const char *pci_addr, const char *resource, uint8_t **ptr)
         goto mmap_failed;
     }
 
+    log_info("Mapped %d bytes of %s", resource_len, resource);
+
 mmap_failed:
 get_filesize_failed:
     pci_close(fd);

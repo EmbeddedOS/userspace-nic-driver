@@ -12,9 +12,9 @@
 /* Private function prototypes -----------------------------------------------*/
 static char *generate_unique_filepath(char *buf, int len);
 
-static inline int vfio_mmap_2mb_page(int32_t length, uint8_t **addr);
+static inline int vfio_mmap_2mb_page(uint32_t length, uint8_t **addr);
 
-static int mmap_2mb_page(int32_t length, struct mem *mem);
+static int mmap_2mb_page(uint32_t length, struct mem *mem);
 
 /* Private function definitions ----------------------------------------------*/
 static char *generate_unique_filepath(char *buf, int len)
@@ -26,7 +26,7 @@ static char *generate_unique_filepath(char *buf, int len)
     return buf;
 }
 
-static inline int vfio_mmap_2mb_page(int32_t length, uint8_t **addr)
+static inline int vfio_mmap_2mb_page(uint32_t length, uint8_t **addr)
 {
     *addr = (uint8_t *)mmap(
         NULL, length, PROT_READ | PROT_WRITE,
@@ -45,7 +45,7 @@ static inline int vfio_mmap_2mb_page(int32_t length, uint8_t **addr)
 /**
  * @brief   - To request huge pages using mmap system call,
  */
-static int mmap_2mb_page(int32_t length, struct mem *mem)
+static int mmap_2mb_page(uint32_t length, struct mem *mem)
 {
     int res = 0;
     int fd = 0;
@@ -77,11 +77,16 @@ static int mmap_2mb_page(int32_t length, struct mem *mem)
 
     mem->phy = virt_to_phy(mem->virt);
 
+    res = 0;
+    goto exit_success;
+
 lock_mem_in_ram_failed:
     munmap(mem->virt, length);
+exit_success:
 mmap_failed:
 ftruncate_failed:
     close(fd);
+    unlink(temp_huge_file);
 exit:
     return res;
 }
@@ -89,6 +94,9 @@ exit:
 int allocate_huge_page(uint32_t length, struct mem *mem)
 {
     int res = 0;
+
+    /* TODO: Align the length to page size. */
+
     res = mmap_2mb_page(length, mem);
     expr_check_err(res, exit, "Failed to allocate huge page");
 
@@ -105,18 +113,10 @@ int allocate_mempool(uint32_t entry_num, uint32_t entry_size,
 
     mempool->entry_size = entry_size;
     mempool->entry_num = entry_num;
-    mempool->current_idx = 0;
 
     res = allocate_huge_page(mempool->entry_size * mempool->entry_num, &mem);
     expr_check_err(res, exit, "allocate_huge_page failed");
-
     mempool->addr = mem.virt;
-    mempool->entries = malloc(mempool->entry_num * sizeof(uint32_t));
-
-    for (uint32_t i = 0; i < mempool->entry_num; i++)
-    {
-    }
-
 exit:
     return res;
 }
@@ -125,6 +125,8 @@ exit:
 /**
  * @brief   - Translating virtual addrress into physical address by mapping the
  *            /proc/self/pagemap file.
+ *          - The device have no idea about virtual memory address, we need to
+ *            translate to physical memory address and pass to the device.
  * @link    - https://www.kernel.org/doc/Documentation/vm/pagemap.txt
  */
 uintptr_t virt_to_phy(uint8_t *virt)
@@ -134,6 +136,7 @@ uintptr_t virt_to_phy(uint8_t *virt)
     int fd = open("/proc/self/pagemap", O_RDONLY);
     expr_check_err(fd, exit, "Failed to open /proc/self/pagemap");
 
+    close(fd);
 exit:
     return 0;
 }
