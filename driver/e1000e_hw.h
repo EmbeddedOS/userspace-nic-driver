@@ -18,11 +18,17 @@
 #define INTEL_82574_RAL1_OFFSET 0x05408
 #define INTEL_82574_RAH1_OFFSET 0x0540C
 
-/* Interrupts */
+/* Interrupts. */
 #define INTEL_82574_IMS_OFFSET 0x000D0 /* Interrupt Mask Set/Read. */
 #define INTEL_82574_IMC_OFFSET 0x000D8 /* Interrupt Mask Clear. */
 
 #define INTEL_82574_RCTL_OFFSET 0x00100 /* Receive Control. */
+
+/* Statistics. */
+#define INTEL_82574_CRCERRS_OFFSET 0x04000
+#define INTEL_82574_ALGNERRC_OFFSET 0x04004
+#define INTEL_82574_RXERRC_OFFSET 0x0400C
+#define INTEL_82574_MPC_OFFSET 0x04010
 
 /* Intel 82574 register bits -------------------------------------------------*/
 /* Interrupt Mask Set/Read bits. */
