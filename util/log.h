@@ -28,7 +28,7 @@ static inline void print_reg(const char*name, uint32_t reg)
     fprintf(stderr, "Reg %s: ", name);
     for (size_t i = 0; i < 32; i++)
     {
-        fprintf(stderr, "%c", (reg & (1u << i)) ? '1' : '0');
+        fprintf(stderr, "%c", (reg & (1u << 31 - i)) ? '1' : '0');
         if (i % 4 == 3)
         {
             fprintf(stderr, " ");

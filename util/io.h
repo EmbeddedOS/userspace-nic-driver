@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 
-#define get_bit(reg, pos) (reg & (1 << pos))
+#define get_bit(reg, pos) ((reg & (1 << pos)) >> pos)
 
 static inline void set_reg(uint8_t *base, uint32_t offset, uint32_t val)
 {

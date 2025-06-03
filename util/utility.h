@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #define set_bit(var, pos) var |= (1 << pos)
+#define clr_bit(var, pos) var &= ~(1 << pos)
 
 #define malloc_type(type)                         \
     ({                                            \

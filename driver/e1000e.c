@@ -9,8 +9,16 @@
 
 #define e1000_write_flush(mem) get_reg(mem, INTEL_82574_STATUS_OFFSET)
 
+#define e1000e_get_mdic_data(mdic) (0x0000ffff & mdic)
+
 /* Private function prototypes -----------------------------------------------*/
 static int e1000e_sw_reset(struct e1000e_driver *self);
+
+static int e1000e_phy_read_reg(struct e1000e_driver *self, uint8_t phy_reg,
+                               uint16_t *val);
+
+static int e1000e_phy_write_reg(struct e1000e_driver *self, uint8_t phy_reg,
+                                uint16_t val);
 
 static int e1000e_phy_init(struct e1000e_driver *self);
 
@@ -34,6 +42,76 @@ static uint32_t e1000e_recv(struct nic_driver *drv,
                             struct sk_buf **buffers, uint32_t len);
 
 /* Private function definitions ----------------------------------------------*/
+
+/**
+ * @brief   - Read a PHY register via MDIC register.
+ * @note    - Reading steps:
+ *            
+ * @ref     - Intel® 82574 GbE Controller Family Datasheet: 10.2.2.7 MDI Control
+ *            Register - MDIC.
+ */
+static int e1000e_phy_read_reg(struct e1000e_driver *self, uint8_t phy_reg,
+                               uint16_t *val)
+{
+    int res = 0;
+    uint32_t mdic = 0;
+
+    mdic = 0;
+    mdic |= (phy_reg << INTEL_82574_MDIC_REGADD_BIT);
+    mdic |= (INTEL_82574_MDIC_PHYADD_GIGABIT << INTEL_82574_MDIC_PHYADD_BIT);
+    mdic |= (INTEL_82574_MDIC_OP_MDI_READ << INTEL_82574_MDIC_OP_BIT);
+    clr_bit(mdic, INTEL_82574_MDIC_R_BIT);
+
+    set_reg(self->bar0, INTEL_82574_MDIC_OFFSET, mdic);
+    e1000_write_flush(self->bar0);
+    usleep(10000);
+
+    // Wait until read flag become ready.
+    wait_bit_set(self->bar0, INTEL_82574_MDIC_OFFSET, INTEL_82574_MDIC_R_BIT);
+    mdic = get_reg(self->bar0, INTEL_82574_MDIC_OFFSET);
+
+    if (get_bit(mdic, INTEL_82574_MDIC_E_BIT))
+    { // Check error flag.
+        res = e1000e_get_mdic_data(mdic);
+    }
+    else
+    {
+        *val = e1000e_get_mdic_data(mdic);
+    }
+
+exit:
+    return res;
+}
+
+static int e1000e_phy_write_reg(struct e1000e_driver *self, uint8_t phy_reg,
+                                uint16_t val)
+{
+    int res = 0;
+    uint32_t mdic = 0;
+
+    mdic = val;
+    mdic |= (phy_reg << INTEL_82574_MDIC_REGADD_BIT);
+    mdic |= (INTEL_82574_MDIC_PHYADD_GIGABIT << INTEL_82574_MDIC_PHYADD_BIT);
+    mdic |= (INTEL_82574_MDIC_OP_MDI_WRITE << INTEL_82574_MDIC_OP_BIT);
+    clr_bit(mdic, INTEL_82574_MDIC_R_BIT);
+
+    set_reg(self->bar0, INTEL_82574_MDIC_OFFSET, mdic);
+    e1000_write_flush(self->bar0);
+    usleep(10000);
+
+    // Wait until read flag become ready.
+    wait_bit_set(self->bar0, INTEL_82574_MDIC_OFFSET, INTEL_82574_MDIC_R_BIT);
+    mdic = get_reg(self->bar0, INTEL_82574_MDIC_OFFSET);
+
+    if (get_bit(mdic, INTEL_82574_MDIC_E_BIT))
+    { // Check error flag.
+        res = e1000e_get_mdic_data(mdic);
+    }
+
+exit:
+    return res;
+}
+
 static uint32_t e1000e_send(struct nic_driver *drv,
                             const struct sk_buf **buffers, uint32_t len)
 {
@@ -116,13 +194,22 @@ exit:
 }
 
 /**
- * @brief   - 
+ * @brief   - Initialize the 82574 PHY layer.
  *          - The device driver uses the MDIC register to initialize the PHY and
  *            setup the link.
  */
 static int e1000e_phy_init(struct e1000e_driver *self)
 {
-    return 0;
+    int res = 0;
+    uint32_t phy_status = 0;
+
+    log_info("Setting up PHY and link.");
+
+    res = e1000e_phy_read_reg(self, INTEL_82574_PHY_STATUS_OFFSET, (uint16_t *)&phy_status);
+
+    print_reg("PHY STATUS", phy_status);
+
+    return res;
 }
 
 static int e1000e_init_stat_counters(struct e1000e_driver *self)

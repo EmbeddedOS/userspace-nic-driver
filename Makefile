@@ -12,3 +12,8 @@ install:
 
 qemu:
 	qemu-system-aarch64 -M virt -cpu cortex-a57 -nographic -kernel ../linux/arch/arm64/boot/Image -initrd ../rootfs.cpio.gz -net nic,model=e1000e
+
+full:
+	make
+	make install
+	make qemu

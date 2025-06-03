@@ -24,6 +24,14 @@
 
 #define INTEL_82574_RCTL_OFFSET 0x00100 /* Receive Control. */
 
+
+/* Intel 82574 PHY register offsets ------------------------------------------*/
+#define INTEL_82574_PHY_CTRL_OFFSET 0x00
+#define INTEL_82574_PHY_STATUS_OFFSET 0x01
+#define INTEL_82574_PHY_IDENTIFIER1_OFFSET 0x02
+#define INTEL_82574_PHY_IDENTIFIER2_OFFSET 0x03
+#define INTEL_82574_PHY_EXTENDED_STATUS_OFFSET 0x0f
+
 /* Intel 82574 register bits -------------------------------------------------*/
 /* Interrupt Mask Set/Read bits. */
 #define INTEL_82574_IMS_LCS_BIT 0x02 /* Link status change. */
@@ -34,7 +42,22 @@
 #define INTEL_82574_CTRL0_RST_BIT 0x1A
 #define INTEL_82574_CTRL0_PHY_RST_BIT 0x1F
 
-/* Intel 82574 register masks ------------------------------------------------*/
+#define INTEL_82574_MDIC_DATA_BIT 0x00
+#define INTEL_82574_MDIC_REGADD_BIT 0x10
+#define INTEL_82574_MDIC_PHYADD_BIT 0x15
+#define INTEL_82574_MDIC_OP_BIT 0x1A
+#define INTEL_82574_MDIC_R_BIT 0x1C
+#define INTEL_82574_MDIC_I_BIT 0x1D
+#define INTEL_82574_MDIC_E_BIT 0x1E
 
+
+/* Intel 82574 register masks ------------------------------------------------*/
 #define INTEL_82574_CTRL0_RST_MASK (1 << INTEL_82574_CTRL0_RST_BIT)
 #define INTEL_82574_CTRL0_PHY_RST_MASK (1 << INTEL_82574_CTRL0_PHY_RST_BIT)
+
+/* Intel 82574 fields --------------------------------------------------------*/
+#define INTEL_82574_MDIC_PHYADD_GIGABIT 0b01
+#define INTEL_82574_MDIC_PHYADD_PCIE 0b10
+
+#define INTEL_82574_MDIC_OP_MDI_WRITE 0b01
+#define INTEL_82574_MDIC_OP_MDI_READ 0b10
