@@ -41,6 +41,8 @@ static uint32_t e1000e_send(struct nic_driver *drv,
 static uint32_t e1000e_recv(struct nic_driver *drv,
                             struct sk_buf **buffers, uint32_t len);
 
+static int e1000e_stat(struct nic_driver *drv, struct mac_info *mac_info);
+
 /* Private function definitions ----------------------------------------------*/
 
 /**
@@ -125,6 +127,29 @@ static uint32_t e1000e_recv(struct nic_driver *drv,
                             struct sk_buf **buffers, uint32_t len)
 {
     return 0;
+}
+
+/**
+ * @brief   - 
+ */
+static int e1000e_stat(struct nic_driver *drv, struct nic_stat *stat)
+{
+    int res = 0;
+    struct e1000e_driver *self = e1000e_container_of(drv);
+
+    uint32_t crc_err = get_reg(self->bar0, INTEL_82574_CRCERRS_OFFSET);
+    uint32_t align_err = get_reg(self->bar0, INTEL_82574_ALGNERRC_OFFSET);
+    uint32_t rx_err = get_reg(self->bar0, INTEL_82574_RXERRC_OFFSET);
+    uint32_t mpc_err = get_reg(self->bar0, INTEL_82574_MPC_OFFSET);
+
+    stat->alignment_err += align_err;
+    stat->crc_err += crc_err;
+    stat->missed_pkt += mpc_err;
+    stat->rx_err += rx_err;
+
+
+exit:
+    return res;
 }
 
 /**
@@ -214,6 +239,12 @@ static int e1000e_phy_init(struct e1000e_driver *self)
 
 static int e1000e_init_stat_counters(struct e1000e_driver *self)
 {
+    struct nic_stat nic_stat = {0};
+
+    /* Statistic counter registers are clear-on-read, so we read to clear them
+     * and reset the value to zero. */
+    e1000e_stat(&self->base, &nic_stat);
+
     return 0;
 }
 
@@ -271,6 +302,7 @@ struct nic_driver *e1000e_init(const char *pci_addr)
     self->base.send = &e1000e_send;
     self->base.recv = &e1000e_recv;
     self->base.get_mac_info = &e1000e_get_mac_info;
+    self->base.stat = &e1000e_stat;
 
     /* 1. Unbind driver. */
     res = pci_unbind(pci_addr);
