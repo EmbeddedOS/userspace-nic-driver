@@ -10,6 +10,12 @@
  *            software the ability to monitor and control the state of PHY.
  *          - Software can use MDIO accesses to read or write registers in
  *            either GMII or MII mode by accessing the 82574's MDIC register.
+ * 
+ * @note    - Packet reception consists of recognizing the presence of a packet
+ *            on the wire, performing address filter, storing the packet in the
+ *            receive data FIFO, transferring the data to one of the two receive
+ *            queues in host memory, and updating the state of a receive
+ *            descriptor.
  */
 
 #include <base.h>

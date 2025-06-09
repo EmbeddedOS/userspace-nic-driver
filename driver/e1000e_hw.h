@@ -93,9 +93,21 @@
 #define INTEL_82574_MDIC_OP_MDI_WRITE 0b01
 #define INTEL_82574_MDIC_OP_MDI_READ 0b10
 
+#define INTEL_82574__MRQ_RSS_TYPE_NO_HASH_COMPUTATION 0x0
+#define INTEL_82574__MRQ_RSS_TYPE_IPV4_WITH_TCP_HASH 0x1
+#define INTEL_82574__MRQ_RSS_TYPE_IPV4_HASH 0x2
+#define INTEL_82574__MRQ_RSS_TYPE_IPV6_WITH_TCP_HASH 0x3
+#define INTEL_82574__MRQ_RSS_TYPE_IPV6_WITH_EXT_HEADER_HASH 0x4
+#define INTEL_82574__MRQ_RSS_TYPE_IPV6_HASH 0x5
+
 /* Intel 82574 fields --------------------------------------------------------*/
 
 #pragma pack(push, 1)
+
+/**
+ * @brief   - Is a data structure that contains the receive data buffer address
+ *            and fields for hardware to store packet information.
+ */
 struct e1000e_legacy_rx_desc
 { // Legacy Receive Descriptor Format.
     uint64_t addr;
@@ -108,12 +120,33 @@ struct e1000e_legacy_rx_desc
 
 struct e1000e_extened_rx_desc
 { // Extended Rx Descriptor.
-    uint64_t addr;
-    uint16_t len;
-    uint16_t checksum;
-    uint8_t status;
-    uint8_t error;
-    uint16_t vlan_tags;
+    union
+    {
+        uint32_t data;
+        struct
+        {
+            uint8_t rss_type : 4;
+            uint8_t reserved1 : 4;
+            uint8_t queue : 5;
+            uint8_t reserved2 : 3;
+            uint16_t reserved3;
+        } mrq;
+    } mrq;
+
+    union
+    {
+        uint32_t rss_hash;
+        struct
+        {
+            uint16_t ip_identification;
+            uint16_t packet_checksum;
+        }
+    };
+
+    uint32_t extened_status:19;
+    uint32_t extended_error:13;
+    uint16_t length;
+    uint16_t vlan_tag;
 };
 
 #pragma pack(pop)
