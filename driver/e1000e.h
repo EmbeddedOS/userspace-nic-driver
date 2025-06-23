@@ -16,6 +16,23 @@
  *            receive data FIFO, transferring the data to one of the two receive
  *            queues in host memory, and updating the state of a receive
  *            descriptor.
+ *                                    Packets
+ *                                      ||
+ *                                  ____\/_____
+ *                                 |_L2_Filter_|
+ *                                      ||
+ *                                  ____\/_____
+ *                                 |Device_FIFO|
+ *                                      ||
+ *                         Select Queue in host memory
+ *                                      ||
+ *                                //====\/====\\
+ *                            ___//__        __\\___
+ *                           |Queue_1|      |Queue_2|
+ *
+ *          1. Packet address filter.
+ *          2. 
+ * 
  */
 
 #include <base.h>
@@ -35,6 +52,18 @@ struct e1000e_tx_queue
 {
 };
 
+/**
+ * @brief   - e1000e nic driver structure.
+ *          - The nic device is connected to PCIe bus and expose 4 BARs.
+ *            1. Memory BAR0: internal registers and memories.
+ *            2. Flash BAR1: External flash.
+ *            3. I/O BAR2.
+ *            4. MSI-X BAR3.
+ * @note    - To access BARs remember to enable PCI Memory Access Enable bit
+ *            first.
+ * @note    - We only map BAR0 to our application to read/write nic registers
+ *            and memories.
+ */
 struct e1000e_driver
 {
     struct nic_driver base;

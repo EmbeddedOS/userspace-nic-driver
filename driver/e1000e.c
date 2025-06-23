@@ -41,14 +41,14 @@ static uint32_t e1000e_send(struct nic_driver *drv,
 static uint32_t e1000e_recv(struct nic_driver *drv,
                             struct sk_buf **buffers, uint32_t len);
 
-static int e1000e_stat(struct nic_driver *drv, struct mac_info *mac_info);
+static int e1000e_stat(struct nic_driver *drv, struct nic_stat *stat);
 
 /* Private function definitions ----------------------------------------------*/
 
 /**
  * @brief   - Read a PHY register via MDIC register.
  * @note    - Reading steps:
- *            
+ *
  * @ref     - Intel® 82574 GbE Controller Family Datasheet: 10.2.2.7 MDI Control
  *            Register - MDIC.
  */
@@ -130,7 +130,9 @@ static uint32_t e1000e_recv(struct nic_driver *drv,
 }
 
 /**
- * @brief   - 
+ * @brief   - Stat NIC counter by reading statistic registers. These registers
+ *            are clear-on-read, so we need to manage these counters in
+ *            software.
  */
 static int e1000e_stat(struct nic_driver *drv, struct nic_stat *stat)
 {
@@ -142,12 +144,25 @@ static int e1000e_stat(struct nic_driver *drv, struct nic_stat *stat)
     uint32_t rx_err = get_reg(self->bar0, INTEL_82574_RXERRC_OFFSET);
     uint32_t mpc_err = get_reg(self->bar0, INTEL_82574_MPC_OFFSET);
 
+    uint32_t good_pkt_recv = get_reg(self->bar0, INTEL_82574_GPRC_OFFSET);
+    uint32_t good_pkt_tran = get_reg(self->bar0, INTEL_82574_GPTC_OFFSET);
+
+    uint64_t rx_bytes = get_reg(self->bar0, INTEL_82574_GORCL_OFFSET) +
+                        ((uint64_t)get_reg(self->bar0, INTEL_82574_GORCH_OFFSET)
+                         << 32);
+
+    uint64_t tx_bytes = get_reg(self->bar0, INTEL_82574_GOTCL_OFFSET) +
+                        ((uint64_t)get_reg(self->bar0, INTEL_82574_GOTCH_OFFSET)
+                         << 32);
+
     stat->alignment_err += align_err;
     stat->crc_err += crc_err;
     stat->missed_pkt += mpc_err;
     stat->rx_err += rx_err;
-
-
+    stat->rx_pkt += good_pkt_recv;
+    stat->tx_pkt += good_pkt_tran;
+    stat->rx_byte += rx_bytes;
+    stat->tx_byte += tx_bytes;
 exit:
     return res;
 }
@@ -310,7 +325,7 @@ struct nic_driver *e1000e_init(const char *pci_addr)
     /* 2. Enable DMA. */
     res = pci_enable_bus_mastering(pci_addr);
 
-    /* 3. Map the DMA into process memory. */
+    /* 3. Map the bar0 into process memory. */
     res = pci_mmap(pci_addr, PCI_ATTRIBUTE_RESOURCE0, &self->bar0);
 
     res = e1000e_sw_reset(self);

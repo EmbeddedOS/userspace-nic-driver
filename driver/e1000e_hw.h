@@ -105,9 +105,10 @@
 #pragma pack(push, 1)
 
 /**
- * @brief   - Is a data structure that contains the receive data buffer address
- *            and fields for hardware to store packet information.
+ * @brief   - A receive descriptor is a data structure that contains the receive
+ *            data buffer address and fields for hardware to store packet info.
  */
+
 struct e1000e_legacy_rx_desc
 { // Legacy Receive Descriptor Format.
     uint64_t addr;
