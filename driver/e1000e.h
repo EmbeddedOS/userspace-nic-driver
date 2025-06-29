@@ -11,28 +11,28 @@
  *          - Software can use MDIO accesses to read or write registers in
  *            either GMII or MII mode by accessing the 82574's MDIC register.
  * 
- * @note    - Packet reception consists of recognizing the presence of a packet
- *            on the wire, performing address filter, storing the packet in the
- *            receive data FIFO, transferring the data to one of the two receive
- *            queues in host memory, and updating the state of a receive
- *            descriptor.
- *                                    Packets
- *                                      ||
- *                                  ____\/_____
- *                                 |_L2_Filter_|
- *                                      ||
- *                                  ____\/_____
- *                                 |Device_FIFO|
- *                                      ||
- *                         Select Queue in host memory
- *                                      ||
- *                                //====\/====\\
- *                            ___//__        __\\___
- *                           |Queue_1|      |Queue_2|
+ * @note    - Receive functionality.
+ *          - Packet reception consists of:
+ *            1. Recognizing the presence of a packet on the wire.
+ *            2. Performing address filtering.
+ *            3. Storing the packet in the receive data FIFO.
+ *            4. Transferring the data to assigned receive queues (one of the
+ *               two receive queues) in host memory.
+ *            5. Updating the state of a receive descriptor.
  *
- *          1. Packet address filter.
- *          2. 
- * 
+ *          - Receive descriptor:
+ *          - A receive descriptor is data structure that is used by software to
+ *            tell hardware where to place incoming network packets (provide
+ *            buffer information such as address, length, etc.). The Hardware
+ *            and then write-back incoming packet to that memory.
+ *            1. When a packet arrives the hardware read the next available
+ *               descriptor (using head pointer) to write the packet data into
+ *               that buffer.
+ *            2. After writing the data, hardware update the descriptor to
+ *               indicate that the buffer was filled and ready to process. The
+ *               hardware can raise an interrupt for this.
+ *            3. Driver processes the packet, normally move to other location.
+ *            4. Driver reset the descriptor state.
  */
 
 #include <base.h>
