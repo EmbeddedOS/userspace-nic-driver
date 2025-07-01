@@ -265,6 +265,20 @@ static int e1000e_init_stat_counters(struct e1000e_driver *self)
 
 static int e1000e_init_rx(struct e1000e_driver *self)
 {
+    /* 1. Disable rx temporarily to config. */
+    clr_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_EN_BIT);
+
+    /* 2. Config buffer packet size. */
+
+    /* 3. Enable CRC offloading. */
+
+    /* 4. Accept broadcast packets. */
+
+    /* 5. Configure rx queues. */
+
+    /* 6. Enable rx. */
+    set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_EN_BIT);
+
     return 0;
 }
 

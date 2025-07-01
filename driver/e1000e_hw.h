@@ -65,6 +65,8 @@
 #define INTEL_82574_PHY_EXTENDED_STATUS_OFFSET 0x0f
 
 /* Intel 82574 register bits -------------------------------------------------*/
+#define INTEL_82574_RCTL_EN_BIT 0x01
+
 /* Interrupt Mask Set/Read bits. */
 #define INTEL_82574_IMS_LCS_BIT 0x02 /* Link status change. */
 
