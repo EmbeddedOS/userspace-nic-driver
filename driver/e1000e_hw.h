@@ -101,7 +101,6 @@
 #define INTEL_82574_MDIC_E_BIT 0x1E
 
 /* Intel 82574 register masks ------------------------------------------------*/
-#define INTEL_82574_RCTL_BSIZE_MASK(val) (val << INTEL_82574_RCTL_BSIZE_BIT)
 
 /* Intel 82574 fields --------------------------------------------------------*/
 #define INTEL_82574_MDIC_PHYADD_GIGABIT 0b01
@@ -110,7 +109,10 @@
 #define INTEL_82574_MDIC_OP_MDI_WRITE 0b01
 #define INTEL_82574_MDIC_OP_MDI_READ 0b10
 
-#define INTEL_82574_
+#define INTEL_82574_RCTL_BSIZE_16384 0b01
+#define INTEL_82574_RCTL_BSIZE_8192 0b10
+#define INTEL_82574_RCTL_BSIZE_4096 0b11
+
 
 #define INTEL_82574_MRQ_RSS_TYPE_NO_HASH_COMPUTATION 0x0
 #define INTEL_82574_MRQ_RSS_TYPE_IPV4_WITH_TCP_HASH 0x1
