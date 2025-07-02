@@ -13,16 +13,29 @@
 
 #define INTEL_82574_MDIC_OFFSET 0x00020
 
+/* Interrupts. */
+#define INTEL_82574_IMS_OFFSET 0x000D0 /* Interrupt Mask Set/Read. */
+#define INTEL_82574_IMC_OFFSET 0x000D8 /* Interrupt Mask Clear. */
+
+/* Receive. */
+#define INTEL_82574_RCTL_OFFSET 0x00100 /* Receive Control. */
+#define INTEL_82574_PSRCTL_OFFSET 0x02170 /* Packet Split Receive Control. */
+#define INTEL_82574_FCRTL_OFFSET 0x02160 /* Flow Control Receive Threshold L. */
+#define INTEL_82574_FCRTH_OFFSET 0x02168 /* Flow Control Receive Threshold H. */
+#define INTEL_82574_RDBAL0_OFFSET 0x02800 /* Recv Desc Base Addr Queue 0 L. */
+#define INTEL_82574_RDBAH0_OFFSET 0x02804 /* Recv Desc Base Addr Queue 0 H. */
+#define INTEL_82574_RDLEN0_OFFSET 0x02808 /* Recv Desc Length Queue 0. */
+#define INTEL_82574_RDH0_OFFSET 0x02810 /* Recv Desc Head Queue 0. */
+#define INTEL_82574_RDT0_OFFSET 0x02818 /* Recv Desc Tail Queue 0. */
+#define INTEL_82574_RXDCTL_OFFSET 0x02828 /* Recv Desc Control. */
+
 #define INTEL_82574_RAL0_OFFSET 0x05400
 #define INTEL_82574_RAH0_OFFSET 0x05404
 #define INTEL_82574_RAL1_OFFSET 0x05408
 #define INTEL_82574_RAH1_OFFSET 0x0540C
 
-/* Interrupts. */
-#define INTEL_82574_IMS_OFFSET 0x000D0 /* Interrupt Mask Set/Read. */
-#define INTEL_82574_IMC_OFFSET 0x000D8 /* Interrupt Mask Clear. */
+/* Transmit. */
 
-#define INTEL_82574_RCTL_OFFSET 0x00100 /* Receive Control. */
 
 /* Statistics. */
 #define INTEL_82574_CRCERRS_OFFSET 0x04000
@@ -66,6 +79,9 @@
 
 /* Intel 82574 register bits -------------------------------------------------*/
 #define INTEL_82574_RCTL_EN_BIT 0x01
+#define INTEL_82574_RCTL_BAM_BIT 0x0F
+#define INTEL_82574_RCTL_BSIZE_BIT 0x10
+#define INTEL_82574_RCTL_BSEX_BIT 0x19
 
 /* Interrupt Mask Set/Read bits. */
 #define INTEL_82574_IMS_LCS_BIT 0x02 /* Link status change. */
@@ -85,8 +101,7 @@
 #define INTEL_82574_MDIC_E_BIT 0x1E
 
 /* Intel 82574 register masks ------------------------------------------------*/
-#define INTEL_82574_CTRL0_RST_MASK (1 << INTEL_82574_CTRL0_RST_BIT)
-#define INTEL_82574_CTRL0_PHY_RST_MASK (1 << INTEL_82574_CTRL0_PHY_RST_BIT)
+#define INTEL_82574_RCTL_BSIZE_MASK(val) (val << INTEL_82574_RCTL_BSIZE_BIT)
 
 /* Intel 82574 fields --------------------------------------------------------*/
 #define INTEL_82574_MDIC_PHYADD_GIGABIT 0b01
@@ -95,12 +110,14 @@
 #define INTEL_82574_MDIC_OP_MDI_WRITE 0b01
 #define INTEL_82574_MDIC_OP_MDI_READ 0b10
 
-#define INTEL_82574__MRQ_RSS_TYPE_NO_HASH_COMPUTATION 0x0
-#define INTEL_82574__MRQ_RSS_TYPE_IPV4_WITH_TCP_HASH 0x1
-#define INTEL_82574__MRQ_RSS_TYPE_IPV4_HASH 0x2
-#define INTEL_82574__MRQ_RSS_TYPE_IPV6_WITH_TCP_HASH 0x3
-#define INTEL_82574__MRQ_RSS_TYPE_IPV6_WITH_EXT_HEADER_HASH 0x4
-#define INTEL_82574__MRQ_RSS_TYPE_IPV6_HASH 0x5
+#define INTEL_82574_
+
+#define INTEL_82574_MRQ_RSS_TYPE_NO_HASH_COMPUTATION 0x0
+#define INTEL_82574_MRQ_RSS_TYPE_IPV4_WITH_TCP_HASH 0x1
+#define INTEL_82574_MRQ_RSS_TYPE_IPV4_HASH 0x2
+#define INTEL_82574_MRQ_RSS_TYPE_IPV6_WITH_TCP_HASH 0x3
+#define INTEL_82574_MRQ_RSS_TYPE_IPV6_WITH_EXT_HEADER_HASH 0x4
+#define INTEL_82574_MRQ_RSS_TYPE_IPV6_HASH 0x5
 
 /* Intel 82574 fields --------------------------------------------------------*/
 

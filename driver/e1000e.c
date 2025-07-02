@@ -195,16 +195,16 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     /**
      * Must reset the PHY before reset the MAC.
      */
-    set_reg_mask(self->bar0, INTEL_82574_CTRL0_OFFSET,
-                 INTEL_82574_CTRL0_PHY_RST_MASK);
+    set_reg_bit(self->bar0, INTEL_82574_CTRL0_OFFSET,
+                 INTEL_82574_CTRL0_PHY_RST_BIT);
 
     /**
      * Software can reset the 82574 by writing the CTRL.RST bit. This bit is
      * self-clearing. This will reset the chip's transmit, receive, DMA and link
      * units. Will not effect the current PCI configuration.
      */
-    set_reg_mask(self->bar0, INTEL_82574_CTRL0_OFFSET,
-                 INTEL_82574_CTRL0_RST_MASK);
+    set_reg_bit(self->bar0, INTEL_82574_CTRL0_OFFSET,
+                 INTEL_82574_CTRL0_RST_BIT);
     e1000_write_flush(self->bar0);
 
     wait_bit_clr(self->bar0, INTEL_82574_CTRL0_OFFSET,
@@ -265,15 +265,19 @@ static int e1000e_init_stat_counters(struct e1000e_driver *self)
 
 static int e1000e_init_rx(struct e1000e_driver *self)
 {
-    /* 1. Disable rx temporarily to config. */
+    /* 1. Disable rx temporarily while configuring. */
     clr_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_EN_BIT);
 
-    /* 2. Config buffer packet size. */
+    /* 2. Config buffer packet size, we set 8192 bytes. */
+    set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_BAM_BIT);
 
     /* 3. Enable CRC offloading. */
 
     /* 4. Accept broadcast packets. */
-
+    set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_BSEX_BIT);
+    set_reg_mask(self->bar0, INTEL_82574_RCTL_OFFSET,
+                 INTEL_82574_CTRL0_RST_MASK);
+        
     /* 5. Configure rx queues. */
 
     /* 6. Enable rx. */
