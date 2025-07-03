@@ -38,14 +38,16 @@
 #include <base.h>
 #include <e1000e_hw.h>
 
-#define E1000E_MAX_RX_QUEUE 1
-#define E1000E_MAX_TX_QUEUE 1
+#define E1000E_MAX_TX_QUEUE 2
 
 #define E1000E_DRIVER_NAME "e1000e-userspace-driver"
+#define E1000E_RECV_DESCRIPTOR_ENTRIES 1028
 
 /* Public types --------------------------------------------------------------*/
 struct e1000e_rx_queue
 {
+    volatile union e1000e_extended_rx_desc *recv_desc_ring;
+    uint32_t idx;
 };
 
 struct e1000e_tx_queue
@@ -69,7 +71,7 @@ struct e1000e_driver
     struct nic_driver base;
     const char *name;
     uint8_t *bar0;
-    struct e1000e_rx_queue rx_queues[E1000E_MAX_RX_QUEUE];
+    struct e1000e_rx_queue rx_queues[INTEL_82574_MAX_HOST_RX_QUEUE];
     struct e1000e_tx_queue tx_queues[E1000E_MAX_TX_QUEUE];
 };
 

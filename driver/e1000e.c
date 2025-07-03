@@ -265,6 +265,8 @@ static int e1000e_init_stat_counters(struct e1000e_driver *self)
 
 static int e1000e_init_rx(struct e1000e_driver *self)
 {
+    int res = 0;
+
     /* 1. Disable rx temporarily while configuring. */
     clr_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_EN_BIT);
 
@@ -274,24 +276,50 @@ static int e1000e_init_rx(struct e1000e_driver *self)
                       2, INTEL_82574_RCTL_BSIZE_8192);
 
     /* 3. Enable checksum offloading. */
-    set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_SECRC_BIT);
+    set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET,
+                INTEL_82574_RCTL_SECRC_BIT);
 
     /* 4. Accept broadcast packets. */
     set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_BAM_BIT);
 
     /* 5. Configure rx queues. */
-    for (uint8_t i = 0; i < E1000E_MAX_RX_QUEUE; i++)
+    for (uint8_t i = 0; i < INTEL_82574_MAX_HOST_RX_QUEUE; i++)
     {
+        struct mem mem = {0};
+        uint32_t ring_size = E1000E_RECV_DESCRIPTOR_ENTRIES *
+                             sizeof(union e1000e_extended_rx_desc);
 
-        /* We allocate a mempool to map circular ring buffer receive descriptors
-         * into memory. */
+        /* Enable extended Rx descriptor. */
 
+        /* We allocate a mempool to map the circular ring buffer receive
+         * descriptors into memory. */
+        res = allocate_huge_page(ring_size, &mem);
+        expr_check_err(res, exit, "allocate_huge_page failed");
+
+        /* Prevent rogue memory accesses on premature DMA activation. */
+        memset(mem.virt, 0xFF, ring_size);
+
+        /* Configure descriptor base address. */
+        set_reg(self->bar0, INTEL_82574_RDBAL0_OFFSET(i),
+                (uint32_t)(mem.phy & 0xFFFFFFFFull));
+        set_reg(self->bar0, INTEL_82574_RDBAH0_OFFSET(i),
+                (uint32_t)(mem.phy >> 32));
+
+        /* Configure descriptor ring size. */
+        set_reg(self->bar0, INTEL_82574_RDLEN0_OFFSET(i), ring_size);
+
+        /* Reset descriptor ring head and tail. */
+        set_reg(self->bar0, INTEL_82574_RDH0_OFFSET(i), 0);
+        set_reg(self->bar0, INTEL_82574_RDT0_OFFSET(i), 0);
+
+        self->rx_queues[i].recv_desc_ring =
+            (union e1000e_extended_rx_desc *)mem.virt;
     }
 
+exit:
     /* 6. Enable rx. */
     set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_EN_BIT);
-
-    return 0;
+    return res;
 }
 
 static int e1000e_init_tx(struct e1000e_driver *self)

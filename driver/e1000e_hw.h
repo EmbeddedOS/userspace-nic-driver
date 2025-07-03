@@ -6,6 +6,8 @@
 #define INTEL_CORP_VENDOR_ID 0x8086
 #define INTEL_82574L_GIGABIT_DEVICE_ID 0x10d3
 
+#define INTEL_82574_MAX_HOST_RX_QUEUE 2
+
 /* Intel 82574 register offsets ----------------------------------------------*/
 #define INTEL_82574_CTRL0_OFFSET 0x00000
 #define INTEL_82574_CTRL1_OFFSET 0x00004
@@ -18,15 +20,16 @@
 #define INTEL_82574_IMC_OFFSET 0x000D8 /* Interrupt Mask Clear. */
 
 /* Receive. */
-#define INTEL_82574_RCTL_OFFSET 0x00100 /* Receive Control. */
+#define INTEL_82574_RCTL_OFFSET 0x00100   /* Receive Control. */
 #define INTEL_82574_PSRCTL_OFFSET 0x02170 /* Packet Split Receive Control. */
-#define INTEL_82574_FCRTL_OFFSET 0x02160 /* Flow Control Receive Threshold L. */
-#define INTEL_82574_FCRTH_OFFSET 0x02168 /* Flow Control Receive Threshold H. */
-#define INTEL_82574_RDBAL0_OFFSET 0x02800 /* Recv Desc Base Addr Queue 0 L. */
-#define INTEL_82574_RDBAH0_OFFSET 0x02804 /* Recv Desc Base Addr Queue 0 H. */
-#define INTEL_82574_RDLEN0_OFFSET 0x02808 /* Recv Desc Length Queue 0. */
-#define INTEL_82574_RDH0_OFFSET 0x02810 /* Recv Desc Head Queue 0. */
-#define INTEL_82574_RDT0_OFFSET 0x02818 /* Recv Desc Tail Queue 0. */
+#define INTEL_82574_FCRTL_OFFSET 0x02160  /* Flow Control Receive Threshold L. */
+#define INTEL_82574_FCRTH_OFFSET 0x02168  /* Flow Control Receive Threshold H. */
+
+#define INTEL_82574_RDBAL0_OFFSET(q) (0x02800 + q * 0x100)
+#define INTEL_82574_RDBAH0_OFFSET(q) (0x02804 + q * 0x100)
+#define INTEL_82574_RDLEN0_OFFSET(q) (0x02808 + q * 0x100)
+#define INTEL_82574_RDH0_OFFSET(q) (0x02810 + q * 0x100)
+#define INTEL_82574_RDT0_OFFSET(q) (0x02818 + q * 0x100)
 #define INTEL_82574_RXDCTL_OFFSET 0x02828 /* Recv Desc Control. */
 
 #define INTEL_82574_RAL0_OFFSET 0x05400
@@ -35,7 +38,6 @@
 #define INTEL_82574_RAH1_OFFSET 0x0540C
 
 /* Transmit. */
-
 
 /* Statistics. */
 #define INTEL_82574_CRCERRS_OFFSET 0x04000
@@ -82,6 +84,7 @@
 #define INTEL_82574_RCTL_BAM_BIT 0x0F
 #define INTEL_82574_RCTL_BSIZE_BIT 0x10
 #define INTEL_82574_RCTL_BSEX_BIT 0x19
+#define INTEL_82574_RCTL_SECRC_BIT 0x1A
 
 /* Interrupt Mask Set/Read bits. */
 #define INTEL_82574_IMS_LCS_BIT 0x02 /* Link status change. */
@@ -113,7 +116,6 @@
 #define INTEL_82574_RCTL_BSIZE_8192 0b10
 #define INTEL_82574_RCTL_BSIZE_4096 0b11
 
-
 #define INTEL_82574_MRQ_RSS_TYPE_NO_HASH_COMPUTATION 0x0
 #define INTEL_82574_MRQ_RSS_TYPE_IPV4_WITH_TCP_HASH 0x1
 #define INTEL_82574_MRQ_RSS_TYPE_IPV4_HASH 0x2
@@ -140,35 +142,44 @@ struct e1000e_legacy_rx_desc
     uint16_t vlan_tags;
 };
 
-struct e1000e_extened_rx_desc
+union e1000e_extended_rx_desc
 { // Extended Rx Descriptor.
-    union
+    struct 
     {
-        uint32_t data;
-        struct
+
+    } ;
+
+
+    struct
+    {
+        union
         {
-            uint8_t rss_type : 4;
-            uint8_t reserved1 : 4;
-            uint8_t queue : 5;
-            uint8_t reserved2 : 3;
-            uint16_t reserved3;
+            uint32_t data;
+            struct
+            {
+                uint8_t rss_type : 4;
+                uint8_t reserved1 : 4;
+                uint8_t queue : 5;
+                uint8_t reserved2 : 3;
+                uint16_t reserved3;
+            } mrq;
         } mrq;
-    } mrq;
 
-    union
-    {
-        uint32_t rss_hash;
-        struct
+        union
         {
-            uint16_t ip_identification;
-            uint16_t packet_checksum;
-        }
-    };
+            uint32_t rss_hash;
+            struct
+            {
+                uint16_t ip_identification;
+                uint16_t packet_checksum;
+            }
+        };
 
-    uint32_t extened_status:19;
-    uint32_t extended_error:13;
-    uint16_t length;
-    uint16_t vlan_tag;
+        uint32_t extened_status : 19;
+        uint32_t extended_error : 13;
+        uint16_t length;
+        uint16_t vlan_tag;
+    } wb;
 };
 
 #pragma pack(pop)
