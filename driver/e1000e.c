@@ -273,6 +273,7 @@ static int e1000e_init_rx(struct e1000e_driver *self)
     /* 2. Config buffer packet size, we set 8192 bytes. */
     set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_BSEX_BIT);
     set_reg_bit_range(self->bar0, INTEL_82574_RCTL_OFFSET,
+                      INTEL_82574_RCTL_BSIZE_BIT,
                       2, INTEL_82574_RCTL_BSIZE_8192);
 
     /* 3. Enable checksum offloading. */
@@ -290,6 +291,11 @@ static int e1000e_init_rx(struct e1000e_driver *self)
                              sizeof(union e1000e_extended_rx_desc);
 
         /* Enable extended Rx descriptor. */
+        set_reg_bit(self->bar0, INTEL_82574_RFCTL_OFFSET,
+                    INTEL_82574_RFCTL_EXSTEN_BIT);
+        set_reg_bit_range(self->bar0, INTEL_82574_RCTL_OFFSET,
+                          INTEL_82574_RCTL_DTYP_BIT, 2,
+                          INTEL_82574_RCTL_DTYP_LEGACY_DESC_TYPE);
 
         /* We allocate a mempool to map the circular ring buffer receive
          * descriptors into memory. */

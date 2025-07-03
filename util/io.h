@@ -13,13 +13,15 @@ static inline uint32_t get_reg(const uint8_t *base, uint32_t offset)
     return *((volatile uint32_t *)(base + offset));
 }
 
-static inline void set_reg_bit_range(uint8_t *base, int offset, uint8_t len,
+static inline void set_reg_bit_range(uint8_t *base, int offset, 
+                                     int bit_offset,
+                                     uint8_t len,
                                      uint32_t value)
 {
     uint32_t reg = get_reg(base, offset);
 
-    reg &= ~(((2 ^ len) - 1) << offset);
-    reg |= (value << offset);
+    reg &= ~(((2 ^ len) - 1) << bit_offset);
+    reg |= (value << bit_offset);
 
     set_reg(base, offset, reg);
 }
