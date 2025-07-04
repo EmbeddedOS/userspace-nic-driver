@@ -1,6 +1,6 @@
 /**
  * @brief   - E1000e 82574 GbE nic driver implementation.
- * 
+ *
  * @note    - The 82574L MAC layer and PHY layer communicate though an GMII/MII
  *            interface.
  *          - All MAC configuration is performed using device control registers
@@ -10,7 +10,7 @@
  *            software the ability to monitor and control the state of PHY.
  *          - Software can use MDIO accesses to read or write registers in
  *            either GMII or MII mode by accessing the 82574's MDIC register.
- * 
+ *
  * @note    - Receive functionality.
  *          - Packet reception consists of:
  *            1. Recognizing the presence of a packet on the wire.
@@ -42,11 +42,15 @@
 
 #define E1000E_DRIVER_NAME "e1000e-userspace-driver"
 #define E1000E_RECV_DESCRIPTOR_ENTRIES 1028
-
+#define E1000E_SOCKET_BUFFER_NUMS E1000E_RECV_DESCRIPTOR_ENTRIES
+#define E1000E_SOCKET_BUFFER_SIZE 2048
 /* Public types --------------------------------------------------------------*/
 struct e1000e_rx_queue
 {
     volatile union e1000e_extended_rx_desc *recv_desc_ring;
+    struct sk_mempool pkt_buffer_pool;
+    void *pkt_buffer_virt_addrs[E1000E_SOCKET_BUFFER_NUMS];
+
     uint32_t idx;
 };
 

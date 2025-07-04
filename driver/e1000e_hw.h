@@ -155,8 +155,10 @@ union e1000e_extended_rx_desc
 { // Extended Rx Descriptor.
     struct 
     {
-
-    } ;
+        uint64_t addr;
+        uint8_t dd;
+        
+    } buffer;
 
 
     struct
@@ -182,7 +184,7 @@ union e1000e_extended_rx_desc
                 uint16_t ip_identification;
                 uint16_t packet_checksum;
             }
-        };
+        } s;
 
         uint32_t extened_status : 19;
         uint32_t extended_error : 13;

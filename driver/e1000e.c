@@ -28,6 +28,8 @@ static int e1000e_init_rx(struct e1000e_driver *self);
 
 static int e1000e_init_tx(struct e1000e_driver *self);
 
+static int e1000e_start_rx_queue(struct e1000e_driver *self);
+
 static int e1000e_disable_interrupts(struct e1000e_driver *self);
 
 static int e1000e_enable_interrupts(struct e1000e_driver *self);
@@ -126,6 +128,9 @@ static uint32_t e1000e_send(struct nic_driver *drv,
 static uint32_t e1000e_recv(struct nic_driver *drv,
                             struct sk_buf **buffers, uint32_t len)
 {
+    struct e1000e_driver *self = e1000e_container_of(drv);
+
+
     return 0;
 }
 
@@ -226,6 +231,8 @@ static int e1000e_sw_reset(struct e1000e_driver *self)
     /* 7. Initialize transmit. */
     res = e1000e_init_tx(self);
 
+    res= e1000e_start_rx_queue(self);
+
     /* 5. Enable interrupt. */
     res = e1000e_enable_interrupts(self);
 
@@ -245,7 +252,8 @@ static int e1000e_phy_init(struct e1000e_driver *self)
 
     log_info("Setting up PHY and link.");
 
-    res = e1000e_phy_read_reg(self, INTEL_82574_PHY_STATUS_OFFSET, (uint16_t *)&phy_status);
+    res = e1000e_phy_read_reg(self, INTEL_82574_PHY_STATUS_OFFSET,
+                              (uint16_t *)&phy_status);
 
     print_reg("PHY STATUS", phy_status);
 
@@ -263,6 +271,25 @@ static int e1000e_init_stat_counters(struct e1000e_driver *self)
     return 0;
 }
 
+
+/**
+ * @brief   - Initialize Rx. The following should be done once per rx queue:
+ *            1. Allocate a region of memory for the receive descriptor lists.
+ *            2. Receive buffers of appropriate size should be allocated and
+ *               pointers to these buffers should be stored in the descriptor
+ *               ring.
+ *            3. Program the descriptor base address with the address of the
+ *               region.
+ *            4. Set the length register to the size of the descriptor ring.
+ *            5. Program the head and tail registers. The tail should be set to
+ *               point one descriptor beyond the end.
+ * 
+ * @note    - It's better to leave the receive logic disable RCTL.EN = 0b until
+ *            the receive descriptor ring has been initialized.
+ *
+ * @ref     - Intel® 82574 GbE Controller Family Datasheet.
+ *              Section 4.6.5 Receive Initialization.
+ */
 static int e1000e_init_rx(struct e1000e_driver *self)
 {
     int res = 0;
@@ -297,7 +324,7 @@ static int e1000e_init_rx(struct e1000e_driver *self)
                           INTEL_82574_RCTL_DTYP_BIT, 2,
                           INTEL_82574_RCTL_DTYP_LEGACY_DESC_TYPE);
 
-        /* We allocate a mempool to map the circular ring buffer receive
+        /* We allocate a huge memory to map the circular ring buffer receive
          * descriptors into memory. */
         res = allocate_huge_page(ring_size, &mem);
         expr_check_err(res, exit, "allocate_huge_page failed");
@@ -316,13 +343,38 @@ static int e1000e_init_rx(struct e1000e_driver *self)
 
         /* Reset descriptor ring head and tail. */
         set_reg(self->bar0, INTEL_82574_RDH0_OFFSET(i), 0);
-        set_reg(self->bar0, INTEL_82574_RDT0_OFFSET(i), 0);
+        set_reg(self->bar0, INTEL_82574_RDT0_OFFSET(i),
+                E1000E_RECV_DESCRIPTOR_ENTRIES - 1);
 
         self->rx_queues[i].recv_desc_ring =
             (union e1000e_extended_rx_desc *)mem.virt;
+
+        /* Allocate a mempool for socket buffers. */
+        res = allocate_sk_mempool(&self->rx_queues[i].pkt_buffer_pool,
+                                  E1000E_SOCKET_BUFFER_NUMS,
+                                  E1000E_SOCKET_BUFFER_SIZE);
+
+        expr_check_err(res, exit, "allocate_sk_mempool failed");
+
+        for (uint16_t j = 0; j < E1000E_SOCKET_BUFFER_NUMS; j++)
+        {
+            union e1000e_extended_rx_desc *desc = 
+                self->rx_queues[i].recv_desc_ring + j;
+
+            struct sk_buf *sk_buf = NULL;
+            res = allocate_sk_buf(&self->rx_queues[i].pkt_buffer_pool, &sk_buf);
+
+            /* Descriptor hold the buffer address. */
+            desc->buffer.addr = sk_buf->phy_addr + offsetof(struct sk_buf, buf);
+
+            /* Cache buffer virtual address to easy access by index. */
+            self->rx_queues[i].pkt_buffer_virt_addrs[j] = sk_buf;
+        }
     }
 
 exit:
+    /* TODO: Clean up allocated memories in case of failure. */
+
     /* 6. Enable rx. */
     set_reg_bit(self->bar0, INTEL_82574_RCTL_OFFSET, INTEL_82574_RCTL_EN_BIT);
     return res;
@@ -332,6 +384,20 @@ static int e1000e_init_tx(struct e1000e_driver *self)
 {
     return 0;
 }
+
+static int e1000e_start_rx_queue(struct e1000e_driver *self)
+{
+    int res = 0;
+
+    for (int i = 0; i < INTEL_82574_MAX_HOST_RX_QUEUE; i++)
+    {
+        set_reg(self->bar0, INTEL_82574_RDH0_OFFSET(i), 0);
+
+    }
+
+    return res;
+}
+
 
 static int e1000e_disable_interrupts(struct e1000e_driver *self)
 {
